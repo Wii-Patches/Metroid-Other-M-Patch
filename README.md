@@ -13,7 +13,8 @@ Dolphin. Nothing from the game is included in this repository.
 
 ## Status
 
-Tested in **Dolphin** on the USA Rev 0 disc, with no Wii Remote connected and a
+Tested in **Dolphin** on the USA Rev 0 disc (both the Gecko codes and a disc
+image rebuilt by the patcher's own wit pipeline), with no Wii Remote connected and a
 scripted GameCube pad: the game boots past its "Wii Remote disconnected"
 screen, advances with A, and the sticks, C-stick and buttons arrive in the
 game's controller state as listed below. **Not yet tested on a real Wii**, and
