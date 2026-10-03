@@ -57,12 +57,13 @@ def run_patch(image_path, log, done, which=('cc', 'gc')):
         if wit is None:
             raise RuntimeError('wit (Wiimms ISO Tool) not found: not bundled with this '
                                'build and not on PATH')
-        which = [w for w in patcher.ORDER if w in which]
+        which = features.expand(which)
         if not which:
             raise RuntimeError('nothing selected: tick at least one patch')
         fmt = '--iso' if image_path.lower().endswith('.iso') else '--wbfs'
 
-        with tempfile.TemporaryDirectory(prefix='otherm_patch_') as tmp:
+        # next to the image: a disc is several GB, and the system temp volume is often small
+        with tempfile.TemporaryDirectory(prefix='.otherm_patch_', dir=os.path.dirname(os.path.abspath(image_path))) as tmp:
             fst = os.path.join(tmp, 'fst')
             log('extracting %s...' % os.path.basename(image_path))
             r = subprocess.run([wit, 'extract', image_path, '--dest', fst, '--psel', 'data',

@@ -38,8 +38,13 @@ def status(dol, region):
 
 def patch(dol, region, which):
     """Patch `dol` (a dol.Dol) in place with the features named in `which`."""
-    which = features.expand(which)
-    feats = [features.load(n) for n in ORDER if n in which]
+    wanted = set(which)
+    feats = []
+    for n in features.expand(which):
+        f = features.load(n)
+        if n not in wanted and f.is_applied(dol):      # a dependency that is already in
+            continue
+        feats.append(f)
     if not feats:
         raise ValueError('nothing selected')
     apply_static(dol, feats)

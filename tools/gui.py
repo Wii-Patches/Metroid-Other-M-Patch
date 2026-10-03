@@ -53,9 +53,12 @@ class App(BASE):
         opts = tk.LabelFrame(self, text='Patches')
         opts.pack(fill='x', padx=10)
         self.cc = tk.BooleanVar(value=True)
-        tk.Checkbutton(opts, text='Classic Controller', variable=self.cc).pack(anchor='w')
+        self.cc_cb = tk.Checkbutton(opts, text='Classic Controller', variable=self.cc)
+        self.cc_cb.pack(anchor='w')
         self.gc = tk.BooleanVar(value=True)
-        tk.Checkbutton(opts, text='GameCube controller (port 1)', variable=self.gc).pack(anchor='w')
+        tk.Checkbutton(opts, text='GameCube controller (port 1) - no Wii Remote needed', variable=self.gc,
+                       command=self.sync_gc).pack(anchor='w')
+        self.sync_gc()
 
         hint = ('Drop a .wbfs or .iso here\n\n(or click to choose one)'
                 if HAVE_DND else 'Click to choose a .wbfs or .iso')
@@ -71,6 +74,12 @@ class App(BASE):
         self.log = tk.Text(self, height=10, state='disabled', wrap='word')
         self.log.pack(fill='both', expand=True, padx=10, pady=10)
         self.after(100, self.poll_queue)
+
+    def sync_gc(self):
+        # the GameCube pad is presented to the game as a Classic Controller, so it always brings that code along
+        if self.gc.get():
+            self.cc.set(True)
+        self.cc_cb.configure(state='disabled' if self.gc.get() else 'normal')
 
     def on_drop(self, event):
         paths = self.tk.splitlist(event.data)          # handles {braced paths with spaces}

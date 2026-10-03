@@ -60,3 +60,7 @@ def expand(which):
 
 def available(name):
     return os.path.isfile(os.path.join(PREBUILT, '%s.json' % name))
+
+
+def available(name):
+    return os.path.exists(os.path.join(PREBUILT, '%s.json' % name))
