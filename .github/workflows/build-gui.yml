@@ -99,7 +99,7 @@ jobs:
             $BINS --distpath pyinst_dist tools/gui.py
           cp wit-gpl-2.0.txt "pyinst_dist/Other-M-Patcher.app/Contents/Resources/wit-gpl-2.0.txt"
           cd pyinst_dist
-          zip -qr "../Other-M-Patch-${{ matrix.target }}.zip" Other-M-Patcher.app
+          zip -qr "../Other-M-ISO-Patcher-${{ matrix.target }}.zip" Other-M-Patcher.app
 
       - name: Build app (Linux)
         if: matrix.target == 'linux-x86_64'
@@ -112,7 +112,7 @@ jobs:
             $BINS --distpath pyinst_dist tools/gui.py
           cp wit-gpl-2.0.txt pyinst_dist/Other-M-Patcher/
           cd pyinst_dist
-          tar -czf "../Other-M-Patch-${{ matrix.target }}.tar.gz" Other-M-Patcher
+          tar -czf "../Other-M-ISO-Patcher-${{ matrix.target }}.tar.gz" Other-M-Patcher
 
       - name: Build app (Windows)
         if: matrix.target == 'windows-x86_64'
@@ -127,19 +127,19 @@ jobs:
             $BINS --distpath pyinst_dist tools/gui.py
           cp wit-gpl-2.0.txt pyinst_dist/Other-M-Patcher/
           cd pyinst_dist
-          7z a "../Other-M-Patch-${{ matrix.target }}.zip" Other-M-Patcher \
-            || powershell -Command "Compress-Archive -Path Other-M-Patcher -DestinationPath ../Other-M-Patch-${{ matrix.target }}.zip"
+          7z a "../Other-M-ISO-Patcher-${{ matrix.target }}.zip" Other-M-Patcher \
+            || powershell -Command "Compress-Archive -Path Other-M-Patcher -DestinationPath ../Other-M-ISO-Patcher-${{ matrix.target }}.zip"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Other-M-Patch-${{ matrix.target }}
-          path: Other-M-Patch-${{ matrix.target }}.*
+          name: Other-M-ISO-Patcher-${{ matrix.target }}
+          path: Other-M-ISO-Patcher-${{ matrix.target }}.*
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: Other-M-Patch-${{ matrix.target }}.*
+          files: Other-M-ISO-Patcher-${{ matrix.target }}.*
 
   patch-files:
     needs: check
