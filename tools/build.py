@@ -27,6 +27,22 @@ BLURB = {
     'gc': ['Play with a GameCube controller in port 1 -- no Wii Remote needed.',
            'Needs the Classic Controller code above; the pad shows up to the game as one.'],
 }
+# The pad class in game.rel drops the pointer unless the event scripts have set the "pointing allowed" flag
+# (li r3,8; bl IsFlag; cmpwi r3,0; bne +0xC; li r0,0; stw r0,396(r31) at 0x80571B8C).  At the first-person step
+# of the training simulation that flag stays off for a Classic Controller, so L + aim did nothing there.  While
+# channel 0 is a Classic Controller (our GameCube pad included) the bne becomes a b; the check is skipped whenever
+# game.rel is not loaded.  game.rel is loaded at run time, so this has to be a conditional Gecko code.
+GATE = [
+    '* Let the Classic Controller pointer through the training simulation\'s first-person gate',
+    '20571BA0 901F018C',
+    '282DBF1C 00FF0200',
+    '04571B98 4800000C',
+    'E2100001 00000000',
+    '04571B98 4082000C',
+    'E2000002 00000000',
+]
+EXTRA = {'gc': GATE}
+
 NOTE = [
     '*Keep these in this order and enable both.  Do not combine with a loader\'s own Gecko',
     '*code handler on a real Wii if you can avoid it; use the patched disc image instead.',
@@ -42,6 +58,7 @@ def gecko_ini(region):
         lines.append('*%s (%s)' % (REGIONS[region]['label'], region))
         lines += ['*' + b for b in BLURB[name]]
         lines += f.gecko_lines()
+        lines += EXTRA.get(name, [])
     return '\n'.join(lines) + '\n'
 
 

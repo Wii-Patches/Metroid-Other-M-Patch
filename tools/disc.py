@@ -5,6 +5,7 @@ folder (USB loaders key off the `/wbfs/<Title> [ID6]/` layout); the untouched
 original is kept next to it as `<name>.bak`.
 """
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -48,6 +49,35 @@ def read_disc_id(fst):
     with open(boot, 'rb') as f:
         header = f.read(8)
     return header[0:6].decode('ascii', 'replace'), header[7]
+
+
+# The pad class in game.rel drops the pointer unless event flag 8 is set:
+#   li r3,8 ; bl IsFlag ; cmpwi r3,0 ; bne +0xC ; li r0,0 ; stw r0,396(r31)
+# The training simulation's "point at the screen and hold B" step leaves it clear, so the
+# Classic Controller pointer did nothing there.  On a patched disc the bne becomes a b.
+# (The Gecko list does the same at run time; see docs/TECHNICAL.md.)
+GATE_RE = re.compile(rb'\x38\x60\x00\x08[\x48-\x4B]...\x2C\x03\x00\x00(\x40\x82|\x48\x00)\x00\x0C'
+                     rb'\x38\x00\x00\x00\x90\x1F\x01\x8C', re.S)
+
+
+def patch_gate(fst, log):
+    rel = find_file(fst, 'game.rel')
+    if not rel:
+        log('  game.rel not found, leaving the training pointer check alone')
+        return False
+    data = bytearray(open(rel, 'rb').read())
+    hits = list(GATE_RE.finditer(data))
+    if len(hits) != 1:
+        log('  game.rel: pointer check not found, leaving it alone')
+        return False
+    at = hits[0].start() + 12
+    if data[at:at + 2] == b'\x48\x00':
+        log('  game.rel already patched')
+        return False
+    data[at:at + 2] = b'\x48\x00'
+    open(rel, 'wb').write(data)
+    log('  patched game.rel (pointer in the training simulation)')
+    return True
 
 
 def run_patch(image_path, log, done, which=('cc', 'gc')):
@@ -99,14 +129,15 @@ def run_patch(image_path, log, done, which=('cc', 'gc')):
                     raise RuntimeError('the main.dol does not match the retail %s (%s) -- already modified '
                                        'by something else, or not an unmodified dump. Not patching it.'
                                        % (REGIONS[region]['label'], features.TITLES[name]))
-            if not todo:
-                raise RuntimeError('nothing left to add: the selected patches are already in this disc.')
-
             if todo:
                 for t in patcher.patch(dol, region, todo):
                     log('  added %s' % t)
                 dol.save(dol_path)
                 log('  patched main.dol')
+            # a disc patched by an earlier release only lacks this one
+            gate = 'cc' in which and patch_gate(fst, log)
+            if not todo and not gate:
+                raise RuntimeError('nothing left to add: the selected patches are already in this disc.')
 
             staged = os.path.join(tmp, 'patched.img')
             log('rebuilding...')

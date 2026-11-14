@@ -44,7 +44,10 @@ to the game as a Classic Controller, so it plays the same way.
 
 This game switches control scheme when the Wii Remote points at the screen, so
 the pointer is toggled by hand: press **L** to turn it on or off. Scenes that
-force first-person mode do not turn it on for you.
+force first-person mode do not turn it on for you. At the training step that
+asks you to point at the screen and hold B, press **L**, aim with the right
+stick and hold **R**/**ZL**. The Riivolution patch does not include the fix for
+this step; use the patched disc image or the Gecko codes.
 
 There is no HOME button on a GameCube pad, so the HOME Menu needs a Wii Remote
 or a Classic Controller.

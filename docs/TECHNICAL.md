@@ -103,6 +103,35 @@ the game's controller class reads sticks from the second status entry. With real
 queued, a bare Wii Remote's slots get the pad as their extension; a real Nunchuk or Classic
 Controller is never overridden.
 
+## First-person gate in the training simulation
+
+The pad class in `files/rel/Release/game.rel` (loaded at `0x80500000`) copies the
+KPAD pointer into the pad object (`+396` valid, `+400` distance, `+404/408`
+position) only while event flag 8 is set:
+
+```
+80571B8C  li    r3,8
+80571B90  bl    IsFlag            ; flag word 0x80C7B0A8
+80571B94  cmpwi r3,0
+80571B98  bne   +0xC
+80571B9C  li    r0,0
+80571BA0  stw   r0,396(r31)       ; pointer not valid
+```
+
+The step of the training simulation that asks you to point at the screen and hold
+B leaves that flag clear (`0x62B`) when no Wii Remote is pointing, so turning the
+Classic Controller pointer on with L had no effect there. The GameCube code list
+ends with a conditional Gecko block: when `game.rel` is loaded (`stw` at
+`0x80571BA0`) and channel 0 is a Classic Controller (KPAD device type `2` at
+`0x802DBF1C`), the `bne` becomes `b`; otherwise it is put back. The pointer still
+needs L, since the game also checks KPAD's own pointer flag.
+
+`game.rel` is loaded at run time, so the DOL patch cannot reach it. The disc
+patcher instead rewrites the same `bne` in `game.rel` itself (file offset
+`0x46918`, found by pattern), unconditionally; it also adds this to a disc patched
+by an earlier release. Riivolution memory patches are applied before the REL is
+loaded, so the Riivolution XML does not carry this fix.
+
 ## How it was tested
 
 Dolphin, USA Rev 0, no Wii Remote, GameCube port 1 set to a standard controller, GDB stub
